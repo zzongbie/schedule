@@ -10,32 +10,26 @@ class GoogleAuthService {
     'https://www.googleapis.com/auth/calendar.events',    // 일정 쓰기 권한이 필요할 경우 추가
   ];
 
-  static bool _initialized = false;
-
-  /// 웹에서 renderButton을 화면에 그리기 전, 혹은 앱 구동 초기에 미리 API를 초기화하는 함수
-  static Future<void> initOnly() async {
-    if (!_initialized) {
-      await GoogleSignIn.instance.initialize(
-        clientId: _clientId,
-      );
-      _initialized = true;
-    }
-  }
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: _clientId,
+    scopes: _scopes,
+  );
 
   /// 구글에 로그인하고, API 통신에 사용할 accessToken을 반환합니다.
   static Future<String?> signInAndGetToken() async {
     try {
-      await initOnly();
+      // 구글 로그인 진행 (웹/앱 공통)
+      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      
+      if (account == null) {
+        // 사용자가 로그인을 취소한 경우
+        return null;
+      }
 
-      // 인터랙티브 로그인 진행 (최신 7.x 버전에서는 authenticate() 사용)
-      final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate(
-        scopeHint: _scopes,
-      );
-
-      // 캘린더 권한(Scope)에 대한 토큰 받아오기
-      final authz = await GoogleSignIn.instance.authorizationClient.authorizeScopes(_scopes);
-
-      return authz.accessToken; // API 요청에 넣을 Access Token 반환
+      // 인증 정보(토큰) 요청
+      final GoogleSignInAuthentication auth = await account.authentication;
+      
+      return auth.accessToken; // API 요청에 사용할 Access Token 반환
     } catch (error) {
       print('Google sign in error: $error');
       return null;
@@ -44,6 +38,6 @@ class GoogleAuthService {
 
   /// 로그아웃 처리
   static Future<void> signOut() async {
-    await GoogleSignIn.instance.signOut();
+    await _googleSignIn.signOut();
   }
 }
