@@ -1,0 +1,44 @@
+
+[2026-03-18 17:46:31.144393] Error during schedule creation: 'ScheduleCreate' object has no attribute 'highlight'
+Traceback (most recent call last):
+  File "E:\schedule\backend\routers\schedules.py", line 134, in create_schedule
+    schedule.detail, schedule.highlight, schedule.view_type, scope_str
+  File "e:\schedule\backend\venv\lib\site-packages\pydantic\main.py", line 761, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'ScheduleCreate' object has no attribute 'highlight'
+
+
+[2026-03-18 17:50:19.671387] Error during schedule creation: 오류:  character varying(4) 자료형에 너무 긴 자료를 담으려고 합니다.
+
+Traceback (most recent call last):
+  File "E:\schedule\backend\routers\schedules.py", line 136, in create_schedule
+    schedule.detail, schedule.highlight, schedule.view_type, scope_str
+  File "e:\schedule\backend\venv\lib\site-packages\psycopg2\extras.py", line 236, in execute
+    return super().execute(query, vars)
+psycopg2.errors.StringDataRightTruncation: 오류:  character varying(4) 자료형에 너무 긴 자료를 담으려고 합니다.
+
+
+
+[2026-03-19 09:41:41.943431] Error during schedule creation: 오류:  character varying(4) 자료형에 너무 긴 자료를 담으려고 합니다.
+
+Traceback (most recent call last):
+  File "E:\schedule\backend\routers\schedules.py", line 136, in create_schedule
+    schedule.detail, schedule.highlight, schedule.view_type, scope_str
+  File "e:\schedule\backend\venv\lib\site-packages\psycopg2\extras.py", line 236, in execute
+    return super().execute(query, vars)
+psycopg2.errors.StringDataRightTruncation: 오류:  character varying(4) 자료형에 너무 긴 자료를 담으려고 합니다.
+
+
+
+[2026-03-19 10:02:49.423034] Error during schedule creation: 오류:  "idx" 칼럼(해당 릴레이션 "schedule")의 null 값이 not null 제약조건을 위반했습니다.
+DETAIL:  실패한 자료: (2026031900000001, null, 2, 미팅테스트, 확인, 2026-03-20, 2026-03-20, 0900, 1000, T001, t, null, null, 2, null, null, [{"C002": 3}], 2)
+
+Traceback (most recent call last):
+  File "E:\schedule\backend\routers\schedules.py", line 173, in create_schedule
+    db_detail, schedule.highlight, schedule.view_type, scope_str
+  File "e:\schedule\backend\venv\lib\site-packages\psycopg2\extras.py", line 236, in execute
+    return super().execute(query, vars)
+psycopg2.errors.NotNullViolation: 오류:  "idx" 칼럼(해당 릴레이션 "schedule")의 null 값이 not null 제약조건을 위반했습니다.
+DETAIL:  실패한 자료: (2026031900000001, null, 2, 미팅테스트, 확인, 2026-03-20, 2026-03-20, 0900, 1000, T001, t, null, null, 2, null, null, [{"C002": 3}], 2)
+
+
