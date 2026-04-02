@@ -1,4 +1,6 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 class GoogleAuthService {
   // 사용자가 제공한 클라이언트 ID
@@ -27,15 +29,18 @@ class GoogleAuthService {
     try {
       await initOnly();
 
-      // 1. web.renderButton() 등을 통해 이미 로그인된 상태인지 확인 (백그라운드 세션 복구)
-      GoogleSignInAccount? account = await GoogleSignIn.instance.attemptLightweightAuthentication();
+      // 플러터 웹(Web)에서는 authenticate()가 지원되지 않으므로 건너뜁니다! (UnimplementedError 방지)
+      if (!kIsWeb) {
+        // 1. 앱(App) 환경이라면 백그라운드 세션 복구 우선 확인
+        GoogleSignInAccount? account = await GoogleSignIn.instance.attemptLightweightAuthentication();
 
-      // 2. 로그인된 계정이 없다면 수동으로 팝업을 띄워 로그인 진행
-      account ??= await GoogleSignIn.instance.authenticate(
-        scopeHint: _scopes,
-      );
+        // 2. 로그인된 계정이 없다면 수동으로 팝업을 띄워 로그인 진행
+        account ??= await GoogleSignIn.instance.authenticate(
+          scopeHint: _scopes,
+        );
+      }
 
-      // 3. 캘린더 접근 권한(Scope)에 대한 토큰 받아오기 (필요시 권한 동의 팝업 뜸)
+      // 3. 웹과 앱 공통: 캘린더 접근 권한(Scope)에 대한 토큰 받아오기 (웹은 여기서 권한 팝업이 뜹니다)
       final authz = await GoogleSignIn.instance.authorizationClient.authorizeScopes(_scopes);
 
       return authz.accessToken; // API 요청에 넣을 Access Token 반환
