@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../service/google_auth_service.dart';
 import '../service/google_calendar_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_sign_in_web/web_only.dart' as web;
+
 
 class GoogleTestPage extends StatefulWidget {
   const GoogleTestPage({Key? key}) : super(key: key);
@@ -14,6 +17,21 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
   String? _eventResult;
   final TextEditingController _eventIdController = TextEditingController();
   bool _isLoading = false;
+  bool _googleInitDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      GoogleAuthService.initOnly().then((_) {
+        if (mounted) {
+          setState(() {
+            _googleInitDone = true;
+          });
+        }
+      });
+    }
+  }
 
   void _login() async {
     setState(() => _isLoading = true);
@@ -84,9 +102,22 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                if (kIsWeb)
+                  SizedBox(
+                    width: 120, // 공식 웹 버튼 해상도
+                    height: 48,
+                    child: _googleInitDone
+                        ? web.renderButton()
+                        : const Center(child: CircularProgressIndicator()),
+                  )
+                else
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    child: const Text('앱 기기 로그인 (App Login)'),
+                  ),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _login,
-                  child: const Text('로그인 (Get Token)'),
+                  child: const Text('토큰 가져오기 (Get Token)'),
                 ),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _logout,
