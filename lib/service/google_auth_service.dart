@@ -27,12 +27,15 @@ class GoogleAuthService {
     try {
       await initOnly();
 
-      // 인터랙티브 로그인 진행 (최신 7.x 버전에서는 authenticate() 사용)
-      final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate(
+      // 1. web.renderButton() 등을 통해 이미 로그인된 상태인지 확인 (백그라운드 세션 복구)
+      GoogleSignInAccount? account = await GoogleSignIn.instance.attemptLightweightAuthentication();
+
+      // 2. 로그인된 계정이 없다면 수동으로 팝업을 띄워 로그인 진행
+      account ??= await GoogleSignIn.instance.authenticate(
         scopeHint: _scopes,
       );
 
-      // 캘린더 권한(Scope)에 대한 토큰 받아오기
+      // 3. 캘린더 접근 권한(Scope)에 대한 토큰 받아오기 (필요시 권한 동의 팝업 뜸)
       final authz = await GoogleSignIn.instance.authorizationClient.authorizeScopes(_scopes);
 
       return authz.accessToken; // API 요청에 넣을 Access Token 반환
