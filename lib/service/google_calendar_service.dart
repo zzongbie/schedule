@@ -93,4 +93,52 @@ class GoogleCalendarService {
       return null;
     }
   }
+
+  /// 일정 추가하기
+  Future<GoogleCalendarEvent?> createEvent({
+    required String calendarId,
+    required String summary,
+    required DateTime start,
+    required DateTime end,
+    String? description,
+  }) async {
+    final encodedCalendarId = Uri.encodeComponent(calendarId);
+    final url = Uri.parse(
+      'https://www.googleapis.com/calendar/v3/calendars/$encodedCalendarId/events',
+    );
+
+    final body = json.encode({
+      'summary': summary,
+      if (description != null) 'description': description,
+      'start': {
+        'dateTime': start.toUtc().toIso8601String(),
+      },
+      'end': {
+        'dateTime': end.toUtc().toIso8601String(),
+      },
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return GoogleCalendarEvent.fromJson(data);
+      } else {
+        print('Error creating event: ${response.statusCode} \n ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception occurred while creating Google Calendar event: $e');
+      return null;
+    }
+  }
 }

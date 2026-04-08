@@ -15,7 +15,7 @@ class GoogleTestPage extends StatefulWidget {
 class _GoogleTestPageState extends State<GoogleTestPage> {
   String? _accessToken;
   String? _eventResult;
-  final TextEditingController _eventIdController = TextEditingController();
+  final TextEditingController _summaryController = TextEditingController();
   bool _isLoading = false;
   bool _googleInitDone = false;
 
@@ -47,6 +47,52 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
     setState(() {
       _accessToken = null;
       _eventResult = null;
+    });
+  }
+
+  void _createEvent() async {
+    if (_accessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('먼저 로그인 후 토큰을 발급받아주세요.')),
+      );
+      return;
+    }
+    
+    final summary = _summaryController.text.trim();
+    if (summary.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('일정 제목을 입력해주세요.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final service = GoogleCalendarService(accessToken: _accessToken!);
+    
+    final now = DateTime.now();
+    final start = now.add(const Duration(hours: 1)); // 1시간 뒤
+    final end = now.add(const Duration(hours: 2)); // 2시간 뒤
+    
+    final result = await service.createEvent(
+      calendarId: 'primary',
+      summary: summary,
+      start: start,
+      end: end,
+      description: 'Flutter 앱에서 추가됨',
+    );
+
+    setState(() {
+      _isLoading = false;
+      if (result != null) {
+        _eventResult = '일정 추가 성공!\n'
+            '제목: ${result.summary}\n'
+            '시작: ${result.start}';
+            
+        // 입력 필드 초기화    
+        _summaryController.clear();
+      } else {
+        _eventResult = '오류: 일정을 추가하지 못했습니다.';
+      }
     });
   }
 
@@ -130,6 +176,23 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
             ElevatedButton(
               onPressed: _isLoading ? null : _fetchEvent,
               child: const Text('전체 일정 가져오기 (Fetch Events)'),
+            ),
+            const Divider(height: 32),
+            
+            const Text('3. 일정 추가하기 테스트 (Create Event)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _summaryController,
+              decoration: const InputDecoration(
+                labelText: '일정 제목 (Summary)',
+                hintText: '추가할 일정의 제목 입력',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _createEvent,
+              child: const Text('일정 추가하기 (Create Event)'),
             ),
             const SizedBox(height: 16),
             const Text('결과 (Result):', style: TextStyle(fontWeight: FontWeight.bold)),
