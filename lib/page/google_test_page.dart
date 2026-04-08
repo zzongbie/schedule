@@ -14,7 +14,8 @@ class GoogleTestPage extends StatefulWidget {
 
 class _GoogleTestPageState extends State<GoogleTestPage> {
   String? _accessToken;
-  String? _eventResult;
+  String? _fetchResult;
+  String? _createResult;
   final TextEditingController _summaryController = TextEditingController();
   bool _isLoading = false;
   bool _googleInitDone = false;
@@ -46,7 +47,8 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
     await GoogleAuthService.signOut();
     setState(() {
       _accessToken = null;
-      _eventResult = null;
+      _fetchResult = null;
+      _createResult = null;
     });
   }
 
@@ -84,14 +86,14 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
     setState(() {
       _isLoading = false;
       if (result != null) {
-        _eventResult = '일정 추가 성공!\n'
+        _createResult = '일정 추가 성공!\n'
             '제목: ${result.summary}\n'
             '시작: ${result.start}';
             
         // 입력 필드 초기화    
         _summaryController.clear();
       } else {
-        _eventResult = '오류: 일정을 추가하지 못했습니다.';
+        _createResult = '오류: 일정을 추가하지 못했습니다.';
       }
     });
   }
@@ -113,14 +115,14 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
       _isLoading = false;
       if (result != null) {
         if (result.isEmpty) {
-          _eventResult = '일정이 없습니다.';
+          _fetchResult = '일정이 없습니다.';
         } else {
           final count = result.length;
           final preview = result.take(5).map((e) => '- ${e.summary} (${e.start})').join('\n');
-          _eventResult = '총 $count개의 일정\n\n$preview' + (count > 5 ? '\n... 외 ${count - 5}개' : '');
+          _fetchResult = '총 $count개의 일정\n\n$preview' + (count > 5 ? '\n... 외 ${count - 5}개' : '');
         }
       } else {
-        _eventResult = '오류: 일정을 가져오지 못했습니다.';
+        _fetchResult = '오류: 일정을 가져오지 못했습니다.';
       }
     });
   }
@@ -177,6 +179,15 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
               onPressed: _isLoading ? null : _fetchEvent,
               child: const Text('전체 일정 가져오기 (Fetch Events)'),
             ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8)
+              ),
+              child: Text(_fetchResult ?? '아직 전체 일정을 가져오지 않았습니다.'),
+            ),
             const Divider(height: 32),
             
             const Text('3. 일정 추가하기 테스트 (Create Event)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -194,15 +205,14 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
               onPressed: _isLoading ? null : _createEvent,
               child: const Text('일정 추가하기 (Create Event)'),
             ),
-            const SizedBox(height: 16),
-            const Text('결과 (Result):', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(8)
               ),
-              child: Text(_eventResult ?? '데이터 없음 (No data yet)'),
+              child: Text(_createResult ?? '아직 일정을 추가하지 않았습니다.'),
             ),
             
             if (_isLoading)
