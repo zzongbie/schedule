@@ -57,17 +57,15 @@ class GoogleCalendarService {
 
   GoogleCalendarService({required this.accessToken});
 
-  /// 단일 일정 가져오기
-  Future<GoogleCalendarEvent?> getSingleEvent({
+  /// 전체 일정 가져오기
+  Future<List<GoogleCalendarEvent>?> getEventsList({
     required String calendarId,
-    required String eventId,
   }) async {
     // URL 인코딩 고려 (기본 캘린더는 보통 'primary' 문자열을 사용)
     final encodedCalendarId = Uri.encodeComponent(calendarId);
-    final encodedEventId = Uri.encodeComponent(eventId);
 
     final url = Uri.parse(
-      'https://www.googleapis.com/calendar/v3/calendars/$encodedCalendarId/events/$encodedEventId',
+      'https://www.googleapis.com/calendar/v3/calendars/$encodedCalendarId/events',
     );
 
     try {
@@ -82,7 +80,9 @@ class GoogleCalendarService {
       if (response.statusCode == 200) {
         // 성공적으로 데이터를 받아옴 -> JSON 파싱
         final Map<String, dynamic> data = json.decode(response.body);
-        return GoogleCalendarEvent.fromJson(data);
+        final List<dynamic>? items = data['items'];
+        if (items == null) return [];
+        return items.map((e) => GoogleCalendarEvent.fromJson(e)).toList();
       } else {
         // 에러 발생 (권한 없음, 존재하지 않는 일정 등)
         print('Error fetching event: \${response.statusCode} \n \${response.body}');

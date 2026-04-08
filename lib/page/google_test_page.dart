@@ -57,31 +57,24 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
       );
       return;
     }
-    
-    final eventId = _eventIdController.text.trim();
-    if (eventId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이벤트 ID를 입력해주세요.')),
-      );
-      return;
-    }
-
     setState(() => _isLoading = true);
     final service = GoogleCalendarService(accessToken: _accessToken!);
-    final result = await service.getSingleEvent(
+    final result = await service.getEventsList(
       calendarId: 'primary',
-      eventId: eventId,
     );
 
     setState(() {
       _isLoading = false;
       if (result != null) {
-        _eventResult = 'Summary: \${result.summary}\n'
-            'Start: \${result.start}\n'
-            'End: \${result.end}\n'
-            'Status: \${result.status}';
+        if (result.isEmpty) {
+          _eventResult = '일정이 없습니다.';
+        } else {
+          final count = result.length;
+          final preview = result.take(5).map((e) => '- ${e.summary} (${e.start})').join('\n');
+          _eventResult = '총 $count개의 일정\n\n$preview' + (count > 5 ? '\n... 외 ${count - 5}개' : '');
+        }
       } else {
-        _eventResult = '오류: 이벤트를 가져오지 못했거나 존재하지 않습니다.';
+        _eventResult = '오류: 일정을 가져오지 못했습니다.';
       }
     });
   }
@@ -132,20 +125,11 @@ class _GoogleTestPageState extends State<GoogleTestPage> {
             
             const Divider(height: 32),
             
-            const Text('2. 단일 일정 가져오기 테스트 (Fetch Event)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _eventIdController,
-              decoration: const InputDecoration(
-                labelText: 'Event ID',
-                hintText: '구글 캘린더의 일정 ID 입력',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            const Text('2. 전체 일정 가져오기 테스트 (Fetch Events)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: _isLoading ? null : _fetchEvent,
-              child: const Text('일정 가져오기 (Fetch Event)'),
+              child: const Text('전체 일정 가져오기 (Fetch Events)'),
             ),
             const SizedBox(height: 16),
             const Text('결과 (Result):', style: TextStyle(fontWeight: FontWeight.bold)),
